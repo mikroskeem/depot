@@ -16,8 +16,19 @@ var (
 )
 
 type tomlConfig struct {
+	// Depot contains configuration for the application itself
+	Depot depotConfig `toml:"depot"`
+
 	// Repositories is a map of repository names to their info
 	Repositories map[string]repositoryInfo `toml:"repositories"`
+}
+
+type depotConfig struct {
+	// An address where HTTP server should listen on
+	ListenAddress string `toml:"listen_address"`
+
+	// Whether listing repositories should be allowed or not
+	RepositoryListing bool `toml:"repository_listing"`
 }
 
 type repositoryInfo struct {
@@ -53,8 +64,16 @@ func main() {
 		panic(err)
 	}
 
+	var listenAddress string
+	if len(config.Depot.ListenAddress) > 0 {
+		listenAddress = config.Depot.ListenAddress
+	} else {
+		listenAddress = ":5000"
+	}
+
 	// Boot up the HTTP server
-	if err := bootServer(config.Repositories); err != nil {
+	zap.L().Info("Starting HTTP server", zap.String("address", listenAddress))
+	if err := bootServer(listenAddress, config.Depot.RepositoryListing, config.Repositories); err != nil {
 		panic(err)
 	}
 }

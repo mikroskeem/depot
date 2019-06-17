@@ -1,3 +1,7 @@
+[depot]
+listen_address = ":5000"
+repository_listing = true
+
 [repositories]
     [repositories.maven-central-mirror]
     path = "/srv/maven/repository/central-mirror"
