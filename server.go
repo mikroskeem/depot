@@ -60,25 +60,7 @@ func repositoryHandler(name string, info repositoryInfo) (http.HandlerFunc, stri
 		// Do authentication if credentials are configured
 		if len(info.Credentials) > 0 {
 			username, password, credsSupplied := r.BasicAuth()
-			authenticated := false
-			if credsSupplied {
-				for _, creds := range info.Credentials {
-					splitted := strings.Split(creds, ":")
-					if len(splitted) != 2 {
-						// Invalid credentials :(
-						continue
-					}
-					checkUsername := splitted[0]
-					checkPassword := splitted[1]
-
-					if checkUsername == username && checkPassword == password {
-						authenticated = true
-						break
-					}
-				}
-			}
-
-			if !authenticated {
+			if !credsSupplied || !checkAuthentication(info.Credentials, username, password) {
 				w.Header().Set("WWW-Authenticate", fmt.Sprintf(`Basic realm="Repository %s is protected"`, name))
 				http.Error(w, "unauthorized", http.StatusUnauthorized)
 				return
@@ -139,4 +121,21 @@ func repositoryHandler(name string, info repositoryInfo) (http.HandlerFunc, stri
 
 		http.Error(w, "bad request", 400)
 	}), repoRoute
+}
+
+func checkAuthentication(credentials []string, username string, password string) bool {
+	for _, creds := range credentials {
+		splitted := strings.Split(creds, ":")
+		if len(splitted) != 2 {
+			// Invalid credentials :(
+			continue
+		}
+		checkUsername := splitted[0]
+		checkPassword := splitted[1]
+
+		if checkUsername == username && checkPassword == password {
+			return true
+		}
+	}
+	return false
 }
