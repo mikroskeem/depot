@@ -1,0 +1,3 @@
+[repositories]
+    [repositories.maven-central-mirror]
+    path = "/srv/maven/repository/central-mirror"

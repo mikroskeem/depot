@@ -2,7 +2,9 @@ package main
 
 import (
 	"flag"
+	"io/ioutil"
 
+	"github.com/BurntSushi/toml"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -12,6 +14,16 @@ var (
 	// information
 	Version string
 )
+
+type tomlConfig struct {
+	// Repositories is a map of repository names to their info
+	Repositories map[string]repositoryInfo `toml:"repositories"`
+}
+
+type repositoryInfo struct {
+	// Path specifies the repository location on filesystem
+	Path string `toml:"path"`
+}
 
 func main() {
 	// CLI options
@@ -25,7 +37,24 @@ func main() {
 	}
 
 	zap.L().Info("Depot", zap.String("version", Version))
-	zap.L().Info("Not done yet :(")
+	zap.L().Info("Work in progress, it's far from being done :(")
+
+	// Read configuration
+	var rawConfig []byte
+	rawConfig, err := ioutil.ReadFile("./config.toml")
+	if err != nil {
+		panic(err)
+	}
+
+	var config tomlConfig
+	if err := toml.Unmarshal(rawConfig, &config); err != nil {
+		panic(err)
+	}
+
+	// Boot up the HTTP server
+	if err := bootServer(config.Repositories); err != nil {
+		panic(err)
+	}
 }
 
 func configureLogging(verbose bool) error {
