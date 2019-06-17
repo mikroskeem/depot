@@ -1,3 +1,10 @@
 [repositories]
     [repositories.maven-central-mirror]
     path = "/srv/maven/repository/central-mirror"
+
+    [repositories.internal]
+    path = "/srv/maven/repository/internal"
+    deploy = true
+    credentials = [
+        "foo:bar"
+    ]
