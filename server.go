@@ -35,7 +35,7 @@ func bootServer(listenAddress string, allowRepositoryListing bool, repositories 
 			w.Header().Set("Content-Type", "text/html")
 			w.WriteHeader(http.StatusOK)
 			for repo := range repositories {
-				fmt.Fprintf(w, "<p><a href='/repository/%s/'>%s/</a></p>", repo, repo)
+				fmt.Fprintf(w, `<p><a href="/repository/%s/">%s/</a></p>`, repo, repo)
 			}
 		})
 	}
@@ -60,7 +60,6 @@ func repositoryHandler(name string, info repositoryInfo) (http.HandlerFunc, stri
 		// Do authentication if credentials are configured
 		if len(info.Credentials) > 0 {
 			username, password, credsSupplied := r.BasicAuth()
-
 			authenticated := false
 			if credsSupplied {
 				for _, creds := range info.Credentials {
@@ -80,7 +79,7 @@ func repositoryHandler(name string, info repositoryInfo) (http.HandlerFunc, stri
 			}
 
 			if !authenticated {
-				w.Header().Set("WWW-Authenticate", fmt.Sprintf("Basic realm=\"Repository %s is protected\"", name))
+				w.Header().Set("WWW-Authenticate", fmt.Sprintf(`Basic realm="Repository %s is protected"`, name))
 				http.Error(w, "unauthorized", http.StatusUnauthorized)
 				return
 			}
