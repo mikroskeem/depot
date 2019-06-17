@@ -1,17 +1,27 @@
 [depot]
+# Address and port where Depot should listen. Default is *:5000
 listen_address = ":5000"
+# Whether listing repositories should be allowed or not
 repository_listing = true
 
+# Repositories
 [repositories]
+    # Repository /repository/maven-central-mirror
     [repositories.maven-central-mirror]
+    # Path where files are hosted from
     path = "/srv/maven/repository/central-mirror"
+    # By default, repository is publicly available to
+    # everybody and deployment is not allowed
 
     [repositories.internal]
     path = "/srv/maven/repository/internal"
+    # Whether deployment should be allowed or not
     deploy = true
+    # Deployment credentials (read-write)
     deploy_credentials = [
         "baz:quux"
     ]
+    # Read-only access credentials
     credentials = [
         "foo:bar"
     ]
