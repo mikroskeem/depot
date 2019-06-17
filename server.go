@@ -34,9 +34,12 @@ func bootServer(listenAddress string, allowRepositoryListing bool, repositories 
 		mux.HandleFunc("/repository", func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "text/html")
 			w.WriteHeader(http.StatusOK)
+
+			fmt.Fprint(w, `<pre>`)
 			for repo := range repositories {
-				fmt.Fprintf(w, `<p><a href="/repository/%s/">%s/</a></p>`, repo, repo)
+				fmt.Fprintf(w, `<a href="/repository/%s/">%s/</a>\n`, repo, repo)
 			}
+			fmt.Fprint(w, `</pre>`)
 		})
 	}
 
