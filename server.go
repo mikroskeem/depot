@@ -21,6 +21,14 @@ func bootServer(repositories map[string]repositoryInfo) error {
 		}),
 	}
 
+	mux.HandleFunc("/repository", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		w.WriteHeader(http.StatusOK)
+		for repo := range repositories {
+			fmt.Fprintf(w, "<p><a href='/repository/%s/'>%s/</a></p>", repo, repo)
+		}
+	})
+
 	for name, repo := range repositories {
 		handler, route := repositoryHandler(name, repo)
 		mux.Handle(route, handler)
