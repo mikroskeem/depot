@@ -57,18 +57,35 @@ func repositoryHandler(name string, info repositoryInfo) (http.HandlerFunc, stri
 	fileServer := http.StripPrefix(repoRoute, http.FileServer(http.Dir(info.Path)))
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Do authentication if credentials are configured
-		if len(info.Credentials) > 0 {
-			username, password, credsSupplied := r.BasicAuth()
-			if !credsSupplied || !checkAuthentication(info.Credentials, username, password) {
-				w.Header().Set("WWW-Authenticate", fmt.Sprintf(`Basic realm="Repository %s is protected"`, name))
-				http.Error(w, "unauthorized", http.StatusUnauthorized)
-				return
+		username, password, credsSupplied := r.BasicAuth()
+
+		// Check user access
+		accessRequiresAuth := len(info.Credentials) > 0
+		deployRequiresAuth := len(info.DeployCredentials) > 0
+		canAccess := !accessRequiresAuth
+		canDeploy := !deployRequiresAuth
+
+		if deployRequiresAuth {
+			canDeploy = credsSupplied && checkAuthentication(info.DeployCredentials, username, password)
+			if canDeploy {
+				canAccess = true
+			}
+		}
+
+		if accessRequiresAuth && !canAccess {
+			canAccess = credsSupplied && checkAuthentication(info.Credentials, username, password)
+			if !canAccess {
+				canDeploy = false
 			}
 		}
 
 		// Simply serve artifacts
 		if r.Method == "GET" {
+			if !canAccess {
+				w.Header().Set("WWW-Authenticate", fmt.Sprintf(`Basic realm="Repository %s is protected"`, name))
+				http.Error(w, "unauthorized", http.StatusUnauthorized)
+				return
+			}
 			fileServer.ServeHTTP(w, r)
 			return
 		}
@@ -78,6 +95,12 @@ func repositoryHandler(name string, info repositoryInfo) (http.HandlerFunc, stri
 			// Check if deployment is allowed
 			if !info.Deploy {
 				http.Error(w, "this repository does not allow deployments", http.StatusForbidden)
+				return
+			}
+
+			if !canDeploy {
+				w.Header().Set("WWW-Authenticate", fmt.Sprintf(`Basic realm="Repository %s deployment is protected"`, name))
+				http.Error(w, "unauthorized", http.StatusUnauthorized)
 				return
 			}
 

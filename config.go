@@ -22,8 +22,13 @@ type repositoryInfo struct {
 
 	// Credentials are used for generic repository access authentication. If empty, then repository
 	// can be accessed freely by anyone
+	// Note that these credentials do not grant deployment access.
 	Credentials []string `toml:"credentials"`
 
 	// Deploy configures whether deployment to said repository is allowed or not
 	Deploy bool `toml:"deploy"`
+
+	// DeployCredentials are used to authenticate deployments.
+	// These credentials grant both access and deployment
+	DeployCredentials []string `toml:"deploy_credentials"`
 }

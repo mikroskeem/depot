@@ -9,6 +9,9 @@ repository_listing = true
     [repositories.internal]
     path = "/srv/maven/repository/internal"
     deploy = true
+    deploy_credentials = [
+        "baz:quux"
+    ]
     credentials = [
         "foo:bar"
     ]
