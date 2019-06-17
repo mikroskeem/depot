@@ -37,7 +37,7 @@ func bootServer(listenAddress string, allowRepositoryListing bool, repositories 
 
 			fmt.Fprint(w, `<pre>`)
 			for repo := range repositories {
-				fmt.Fprintf(w, `<a href="/repository/%s/">%s/</a>\n`, repo, repo)
+				fmt.Fprintf(w, "<a href=\"/repository/%s/\">%s/</a>\n", repo, repo)
 			}
 			fmt.Fprint(w, `</pre>`)
 		})
