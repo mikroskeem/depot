@@ -22,8 +22,9 @@ type tomlConfig struct {
 
 type repositoryInfo struct {
 	// Path specifies the repository location on filesystem
-	Path   string `toml:"path"`
-	Deploy bool   `toml:"deploy"`
+	Path        string   `toml:"path"`
+	Deploy      bool     `toml:"deploy"`
+	Credentials []string `toml:"credentials"`
 }
 
 func main() {

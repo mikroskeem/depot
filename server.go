@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"go.uber.org/zap"
 )
@@ -35,7 +36,35 @@ func repositoryHandler(name string, info repositoryInfo) (http.HandlerFunc, stri
 	fileServer := http.StripPrefix(repoRoute, http.FileServer(http.Dir(info.Path)))
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// TODO: authentication
+		// Do authentication if credentials are configured
+		if len(info.Credentials) > 0 {
+			username, password, credsSupplied := r.BasicAuth()
+			zap.L().Info("credentials", zap.String("user", username), zap.String("pass", password), zap.Bool("credsSupplied", credsSupplied))
+
+			authenticated := false
+			if credsSupplied {
+				for _, creds := range info.Credentials {
+					splitted := strings.Split(creds, ":")
+					if len(splitted) != 2 {
+						// Invalid credentials :(
+						continue
+					}
+					checkUsername := splitted[0]
+					checkPassword := splitted[1]
+
+					if checkUsername == username && checkPassword == password {
+						authenticated = true
+						break
+					}
+				}
+			}
+
+			if !authenticated {
+				w.Header().Set("WWW-Authenticate", fmt.Sprintf("Basic realm=\"Repository %s is protected\"", name))
+				http.Error(w, "unauthorized", http.StatusUnauthorized)
+				return
+			}
+		}
 
 		// Simply serve artifacts
 		if r.Method == "GET" {
@@ -47,8 +76,7 @@ func repositoryHandler(name string, info repositoryInfo) (http.HandlerFunc, stri
 		if r.Method == "PUT" {
 			// Check if deployment is allowed
 			if !info.Deploy {
-				w.WriteHeader(403)
-				fmt.Fprintf(w, "this repository does not allow deployments")
+				http.Error(w, "this repository does not allow deployments", http.StatusForbidden)
 				return
 			}
 
@@ -62,8 +90,7 @@ func repositoryHandler(name string, info repositoryInfo) (http.HandlerFunc, stri
 			fileDir := filepath.Dir(filePath)
 			if err := os.MkdirAll(fileDir, 0755); err != nil {
 				zap.L().Error("failed to create a directory", zap.String("path", fileDir), zap.Error(err))
-				w.WriteHeader(500)
-				fmt.Fprintf(w, "internal error")
+				http.Error(w, "internal error", http.StatusInternalServerError)
 				return
 			}
 
@@ -72,8 +99,7 @@ func repositoryHandler(name string, info repositoryInfo) (http.HandlerFunc, stri
 			contents, err := ioutil.ReadAll(r.Body)
 			if err != nil {
 				zap.L().Error("failed to read PUT request contents!", zap.Error(err))
-				w.WriteHeader(400)
-				fmt.Fprintf(w, "bad request")
+				http.Error(w, "bad request", 400)
 				return
 			}
 
@@ -83,17 +109,15 @@ func repositoryHandler(name string, info repositoryInfo) (http.HandlerFunc, stri
 					os.Remove(filePath)
 				}()
 				zap.L().Error("failed to create file", zap.String("path", fileDir), zap.Error(err))
-				w.WriteHeader(500)
-				fmt.Fprintf(w, "internal error")
+				http.Error(w, "internal error", http.StatusInternalServerError)
 				return
 			}
 
 			w.WriteHeader(200)
-			fmt.Fprintf(w, "ok")
+			w.Write([]byte("ok"))
 			return
 		}
 
-		w.WriteHeader(400)
-		fmt.Fprintf(w, "bad request")
+		http.Error(w, "bad request", 400)
 	}), repoRoute
 }
