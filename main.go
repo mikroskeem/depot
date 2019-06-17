@@ -19,6 +19,7 @@ var (
 func main() {
 	// CLI options
 	verbose = *flag.Bool("verbose", false, "Enables verbose logging")
+	configFile := flag.String("config", "./config.toml", "Configuration file location")
 	flag.Parse()
 
 	// Setup logging
@@ -32,7 +33,7 @@ func main() {
 
 	// Read configuration
 	var rawConfig []byte
-	rawConfig, err := ioutil.ReadFile("./config.toml")
+	rawConfig, err := ioutil.ReadFile(*configFile)
 	if err != nil {
 		panic(err)
 	}
