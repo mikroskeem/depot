@@ -39,7 +39,6 @@ func repositoryHandler(name string, info repositoryInfo) (http.HandlerFunc, stri
 		// Do authentication if credentials are configured
 		if len(info.Credentials) > 0 {
 			username, password, credsSupplied := r.BasicAuth()
-			zap.L().Info("credentials", zap.String("user", username), zap.String("pass", password), zap.Bool("credsSupplied", credsSupplied))
 
 			authenticated := false
 			if credsSupplied {
