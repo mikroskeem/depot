@@ -13,6 +13,7 @@ var (
 	// Version contains current Depot application version
 	// information
 	Version string
+	verbose bool
 )
 
 type tomlConfig struct {
@@ -40,12 +41,12 @@ type repositoryInfo struct {
 
 func main() {
 	// CLI options
-	verbose := flag.Bool("verbose", false, "Enables verbose logging")
+	verbose = *flag.Bool("verbose", false, "Enables verbose logging")
 	flag.Parse()
 
 	// Setup logging
 	defer zap.L().Sync()
-	if err := configureLogging(*verbose); err != nil {
+	if err := configureLogging(verbose); err != nil {
 		panic(err)
 	}
 

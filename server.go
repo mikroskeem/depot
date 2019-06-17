@@ -13,12 +13,20 @@ import (
 
 func bootServer(listenAddress string, allowRepositoryListing bool, repositories map[string]repositoryInfo) error {
 	mux := http.NewServeMux()
-	server := &http.Server{
-		Addr: listenAddress,
-		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	var rootHandler http.Handler
+
+	if verbose {
+		rootHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			zap.L().Info("HTTP request", zap.String("addr", r.RemoteAddr), zap.String("method", r.Method), zap.String("path", r.URL.String()))
 			mux.ServeHTTP(w, r)
-		}),
+		})
+	} else {
+		rootHandler = mux
+	}
+
+	server := &http.Server{
+		Addr:    listenAddress,
+		Handler: rootHandler,
 	}
 
 	if allowRepositoryListing {
@@ -36,7 +44,9 @@ func bootServer(listenAddress string, allowRepositoryListing bool, repositories 
 		handler, route := repositoryHandler(name, repo)
 		mux.Handle(route, handler)
 
-		zap.L().Info("Mapped route", zap.String("from", repo.Path), zap.String("to", route))
+		if verbose {
+			zap.L().Info("Mapped route", zap.String("from", repo.Path), zap.String("to", route))
+		}
 	}
 
 	return server.ListenAndServe()
