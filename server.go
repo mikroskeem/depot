@@ -126,7 +126,7 @@ func repositoryHandler(name string, info repositoryInfo) (http.HandlerFunc, stri
 			contents, err := ioutil.ReadAll(r.Body)
 			if err != nil {
 				zap.L().Error("failed to read PUT request contents!", zap.Error(err))
-				http.Error(w, "bad request", 400)
+				http.Error(w, "bad request", http.StatusBadRequest)
 				return
 			}
 
@@ -140,12 +140,12 @@ func repositoryHandler(name string, info repositoryInfo) (http.HandlerFunc, stri
 				return
 			}
 
-			w.WriteHeader(200)
+			w.WriteHeader(http.StatusOK)
 			w.Write([]byte("ok"))
 			return
 		}
 
-		http.Error(w, "bad request", 400)
+		http.Error(w, "bad request", http.StatusBadRequest)
 	}), repoRoute
 }
 
