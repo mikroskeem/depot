@@ -18,9 +18,11 @@ var (
 
 func main() {
 	// CLI options
-	verbose = *flag.Bool("verbose", false, "Enables verbose logging")
+	verboseFlag := flag.Bool("verbose", false, "Enables verbose logging")
 	configFile := flag.String("config", "./config.toml", "Configuration file location")
 	flag.Parse()
+
+	verbose = *verboseFlag
 
 	// Setup logging
 	defer zap.L().Sync()
