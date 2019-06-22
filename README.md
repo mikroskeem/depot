@@ -28,3 +28,6 @@ If you want to start Depot on system startup, you have two choices:
 
 You should always reverse proxy Depot behind nginx (or other awesome software) and HTTPS, especially
 if you have access/deploy credentials defined and host confidential artifacts.
+
+## Credits
+- [@kashike](https://github.com/kashike) for generating a name for this project
