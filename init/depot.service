@@ -1,0 +1,16 @@
+[Unit]
+Description=Depot Maven repository hosting software
+After=network.target
+
+[Service]
+Type=simple
+User=depot
+Group=depot
+WorkingDirectory=/
+ExecStart=/opt/depot/depot -config /opt/depot/config.toml
+
+# Hardening
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target
