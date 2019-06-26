@@ -117,7 +117,7 @@ func repositoryHandler(name string, info repositoryInfo) (http.HandlerFunc, stri
 			if info.MaxArtifactSize > 0 {
 				requestBody = http.MaxBytesReader(w, r.Body, int64(info.MaxArtifactSize))
 			} else {
-				requestBody = http.MaxBytesReader(w, r.Body, 32*1024*1024)
+				requestBody = http.MaxBytesReader(w, r.Body, 32 << 20)
 			}
 
 			// Set up directories
