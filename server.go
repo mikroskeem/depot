@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -121,17 +121,9 @@ func repositoryHandler(name string, info repositoryInfo) (http.HandlerFunc, stri
 				return
 			}
 
-			// Read contents
-			defer r.Body.Close()
-			contents, err := ioutil.ReadAll(r.Body)
+			// Stream contents to disk
+			fileHandle, err := os.OpenFile(filePath, os.O_WRONLY, 0644)
 			if err != nil {
-				zap.L().Error("failed to read PUT request contents!", zap.Error(err))
-				http.Error(w, "bad request", http.StatusBadRequest)
-				return
-			}
-
-			// Create file
-			if err := ioutil.WriteFile(filePath, contents, 0644); err != nil {
 				defer func() {
 					os.Remove(filePath)
 				}()
@@ -139,6 +131,19 @@ func repositoryHandler(name string, info repositoryInfo) (http.HandlerFunc, stri
 				http.Error(w, "internal error", http.StatusInternalServerError)
 				return
 			}
+
+			defer r.Body.Close()
+			defer fileHandle.Close()
+			var written int64
+			if written, err = io.Copy(fileHandle, r.Body); err != nil {
+				defer func() {
+					os.Remove(filePath)
+				}()
+				zap.L().Error("failed to stream PUT body to disk", zap.Error(err))
+				http.Error(w, "internal error", http.StatusInternalServerError)
+				return
+			}
+			zap.L().Debug("file written on disk", zap.String("filePath", filePath), zap.Int64("bytes", written))
 
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte("ok"))
