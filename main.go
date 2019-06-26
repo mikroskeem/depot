@@ -12,17 +12,16 @@ import (
 var (
 	// Version contains current Depot application version
 	// information
-	Version string
-	verbose bool
+	Version    string
+	verbose    bool
+	configFile string
 )
 
 func main() {
 	// CLI options
-	verboseFlag := flag.Bool("verbose", false, "Enables verbose logging")
-	configFile := flag.String("config", "./config.toml", "Configuration file location")
+	flag.BoolVar(&verbose, "verbose", false, "Enables verbose logging")
+	flag.StringVar(&configFile, "config", "./config.toml", "Configuration file location")
 	flag.Parse()
-
-	verbose = *verboseFlag
 
 	// Setup logging
 	defer zap.L().Sync()
@@ -35,7 +34,7 @@ func main() {
 
 	// Read configuration
 	var rawConfig []byte
-	rawConfig, err := ioutil.ReadFile(*configFile)
+	rawConfig, err := ioutil.ReadFile(configFile)
 	if err != nil {
 		panic(err)
 	}
