@@ -112,6 +112,14 @@ func repositoryHandler(name string, info repositoryInfo) (http.HandlerFunc, stri
 				panic(err)
 			}
 
+			// Open PUT body stream
+			var requestBody io.ReadCloser
+			if info.MaxArtifactSize > 0 {
+				requestBody = http.MaxBytesReader(w, r.Body, int64(info.MaxArtifactSize))
+			} else {
+				requestBody = http.MaxBytesReader(w, r.Body, 32*1024*1024)
+			}
+
 			// Set up directories
 			filePath := filepath.Join(info.Path, file)
 			fileDir := filepath.Dir(filePath)
@@ -132,15 +140,19 @@ func repositoryHandler(name string, info repositoryInfo) (http.HandlerFunc, stri
 				return
 			}
 
-			defer r.Body.Close()
+			defer requestBody.Close()
 			defer fileHandle.Close()
 			var written int64
-			if written, err = io.Copy(fileHandle, r.Body); err != nil {
+			if written, err = io.Copy(fileHandle, requestBody); err != nil {
 				defer func() {
 					os.Remove(filePath)
 				}()
 				zap.L().Error("failed to stream PUT body to disk", zap.Error(err))
-				http.Error(w, "internal error", http.StatusInternalServerError)
+				if strings.Contains(err.Error(), "request body too large") {
+					http.Error(w, "artifact too large", http.StatusBadRequest)
+				} else {
+					http.Error(w, "internal error", http.StatusInternalServerError)
+				}
 				return
 			}
 			zap.L().Debug("file written on disk", zap.String("filePath", filePath), zap.Int64("bytes", written))

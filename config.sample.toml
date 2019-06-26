@@ -25,3 +25,5 @@ repository_listing = true
     credentials = [
         "foo:bar"
     ]
+    # Max artifact size in bytes, default is 32 megabytes
+    max_artifact_size = 32792 # 32 megabytes

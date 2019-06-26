@@ -31,4 +31,7 @@ type repositoryInfo struct {
 	// DeployCredentials are used to authenticate deployments.
 	// These credentials grant both access and deployment
 	DeployCredentials []string `toml:"deploy_credentials"`
+
+	// MaxArtifactSize defines maximum deployable file size in bytes. By default it's 32 megabytes
+	MaxArtifactSize uint64 `toml:"max_artifact_size"`
 }
