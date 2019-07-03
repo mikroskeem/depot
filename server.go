@@ -83,7 +83,7 @@ func repositoryHandler(name string, info repositoryInfo) (http.HandlerFunc, stri
 		}
 
 		// Simply serve artifacts
-		if r.Method == "GET" {
+		if r.Method == "GET" || r.Method == "HEAD" {
 			if !canAccess {
 				w.Header().Set("WWW-Authenticate", fmt.Sprintf(`Basic realm="Repository %s is protected"`, name))
 				http.Error(w, "unauthorized", http.StatusUnauthorized)
