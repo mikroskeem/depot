@@ -130,7 +130,7 @@ func repositoryHandler(name string, info repositoryInfo) (http.HandlerFunc, stri
 			}
 
 			// Stream contents to disk
-			fileHandle, err := os.OpenFile(filePath, os.O_WRONLY, 0644)
+			fileHandle, err := os.OpenFile(filePath, os.O_CREATE | os.O_WRONLY, 0644)
 			if err != nil {
 				defer func() {
 					os.Remove(filePath)
