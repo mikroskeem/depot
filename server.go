@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func bootServer(listenAddress string, allowRepositoryListing bool, repositories map[string]repositoryInfo) error {
+func setupServer(listenAddress string, allowRepositoryListing bool, repositories map[string]repositoryInfo) *http.Server {
 	mux := http.NewServeMux()
 	var rootHandler http.Handler
 
@@ -52,7 +52,7 @@ func bootServer(listenAddress string, allowRepositoryListing bool, repositories 
 		}
 	}
 
-	return server.ListenAndServe()
+	return server
 }
 
 func repositoryHandler(name string, info repositoryInfo) (http.HandlerFunc, string) {
@@ -117,7 +117,7 @@ func repositoryHandler(name string, info repositoryInfo) (http.HandlerFunc, stri
 			if info.MaxArtifactSize > 0 {
 				requestBody = http.MaxBytesReader(w, r.Body, int64(info.MaxArtifactSize))
 			} else {
-				requestBody = http.MaxBytesReader(w, r.Body, 32 << 20)
+				requestBody = http.MaxBytesReader(w, r.Body, 32<<20)
 			}
 
 			// Set up directories
@@ -130,7 +130,7 @@ func repositoryHandler(name string, info repositoryInfo) (http.HandlerFunc, stri
 			}
 
 			// Stream contents to disk
-			fileHandle, err := os.OpenFile(filePath, os.O_CREATE | os.O_WRONLY, 0644)
+			fileHandle, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY, 0644)
 			if err != nil {
 				defer func() {
 					os.Remove(filePath)

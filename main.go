@@ -1,8 +1,13 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"io/ioutil"
+	"net/http"
+	"os"
+	"os/signal"
+	"time"
 
 	"github.com/BurntSushi/toml"
 	"go.uber.org/zap"
@@ -22,6 +27,10 @@ func main() {
 	flag.BoolVar(&verbose, "verbose", false, "Enables verbose logging")
 	flag.StringVar(&configFile, "config", "./config.toml", "Configuration file location")
 	flag.Parse()
+
+	// Setup signal handling
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
 
 	// Setup logging
 	defer zap.L().Sync()
@@ -52,10 +61,26 @@ func main() {
 	}
 
 	// Boot up the HTTP server
-	zap.L().Info("Starting HTTP server", zap.String("address", listenAddress))
-	if err := bootServer(listenAddress, config.Depot.RepositoryListing, config.Repositories); err != nil {
-		panic(err)
-	}
+	server := setupServer(listenAddress, config.Depot.RepositoryListing, config.Repositories)
+	go func() {
+		zap.L().Info("Starting HTTP server", zap.String("address", listenAddress))
+		if err := server.ListenAndServe(); err != http.ErrServerClosed {
+			zap.L().Error("Failed to serve", zap.Error(err))
+		}
+	}()
+
+	// Wait until exit signal
+	<-c
+	zap.L().Info("Got interrupt signal")
+
+	// Shut down
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel()
+	go server.Shutdown(ctx)
+
+	zap.L().Info("Shutting down")
+	<-ctx.Done()
+	zap.L().Info("Bye!")
 }
 
 func configureLogging(verbose bool) error {
