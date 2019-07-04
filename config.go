@@ -1,5 +1,11 @@
 package main
 
+import (
+	"io"
+
+	"github.com/BurntSushi/toml"
+)
+
 type tomlConfig struct {
 	// Depot contains configuration for the application itself
 	Depot depotConfig `toml:"depot"`
@@ -17,6 +23,9 @@ type depotConfig struct {
 
 	// Whether JSON REST API queries are allowed or not
 	APIEnabled bool `toml:"api_enabled"`
+
+	// Whether to save configuration changes done on runtime on Depot exit or not
+	SaveConfigChanges bool `toml:"save_config_changes"`
 }
 
 type repositoryInfo struct {
@@ -37,4 +46,60 @@ type repositoryInfo struct {
 
 	// MaxArtifactSize defines maximum deployable file size in bytes. By default it's 32 megabytes
 	MaxArtifactSize uint64 `toml:"max_artifact_size"`
+}
+
+// Validates configuration
+func (t *tomlConfig) Validate() error {
+	// Validate listen address
+	if len(t.Depot.ListenAddress) == 0 {
+		t.Depot.ListenAddress = ":5000"
+	}
+
+	ensureCopy := func(m **repositoryInfo, source *repositoryInfo) {
+		if *m == nil {
+			*m = &repositoryInfo{}
+			**m = *source
+		}
+	}
+
+	// Validate repository information
+	for n, info := range t.Repositories {
+		modified := (*repositoryInfo)(nil)
+
+		// Need to copy structs here, maps don't work like I expected :(
+		if info.MaxArtifactSize == 0 {
+			ensureCopy(&modified, &info)
+			modified.MaxArtifactSize = 32 << 20
+		}
+
+		// Work around toml library not encoding nil arrays
+		if info.Credentials == nil || len(info.Credentials) == 0 {
+			ensureCopy(&modified, &info)
+			modified.Credentials = []string{}
+		}
+
+		if info.DeployCredentials == nil || len(info.DeployCredentials) == 0 {
+			ensureCopy(&modified, &info)
+			modified.DeployCredentials = []string{}
+		}
+
+		// If entry is modified, replace
+		if modified != nil {
+			t.Repositories[n] = *modified
+		}
+	}
+
+	return nil
+}
+
+// Dumps configuration
+func (t *tomlConfig) Dump(writer io.Writer) error {
+	w := toml.NewEncoder(writer)
+	w.Indent = "    "
+	return w.Encode(t)
+}
+
+// Returns whether given repository is public or not
+func (i *repositoryInfo) IsPublic() bool {
+	return len(i.Credentials) == 0
 }

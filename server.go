@@ -68,7 +68,7 @@ func repositoryHandler(name string, info repositoryInfo) (http.HandlerFunc, stri
 		username, password, credsSupplied := r.BasicAuth()
 
 		// Check user access
-		accessRequiresAuth := len(info.Credentials) > 0
+		accessRequiresAuth := !info.IsPublic()
 		deployRequiresAuth := len(info.DeployCredentials) > 0
 		canAccess := !accessRequiresAuth
 		canDeploy := !deployRequiresAuth
@@ -118,12 +118,7 @@ func repositoryHandler(name string, info repositoryInfo) (http.HandlerFunc, stri
 			}
 
 			// Open PUT body stream
-			var requestBody io.ReadCloser
-			if info.MaxArtifactSize > 0 {
-				requestBody = http.MaxBytesReader(w, r.Body, int64(info.MaxArtifactSize))
-			} else {
-				requestBody = http.MaxBytesReader(w, r.Body, 32<<20)
-			}
+			requestBody := http.MaxBytesReader(w, r.Body, int64(info.MaxArtifactSize))
 
 			// Set up directories
 			filePath := filepath.Join(info.Path, file)

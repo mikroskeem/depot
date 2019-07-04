@@ -53,17 +53,14 @@ func main() {
 		panic(err)
 	}
 
-	var listenAddress string
-	if len(config.Depot.ListenAddress) > 0 {
-		listenAddress = config.Depot.ListenAddress
-	} else {
-		listenAddress = ":5000"
+	if err := config.Validate(); err != nil {
+		panic(err)
 	}
 
 	// Boot up the HTTP server
-	server := setupServer(listenAddress, config.Depot.RepositoryListing, config.Depot.APIEnabled, config.Repositories)
+	server := setupServer(config.Depot.ListenAddress, config.Depot.RepositoryListing, config.Depot.APIEnabled, config.Repositories)
 	go func() {
-		zap.L().Info("Starting HTTP server", zap.String("address", listenAddress))
+		zap.L().Info("Starting HTTP server", zap.String("address", config.Depot.ListenAddress))
 		if err := server.ListenAndServe(); err != http.ErrServerClosed {
 			zap.L().Error("Failed to serve", zap.Error(err))
 		}
@@ -80,6 +77,22 @@ func main() {
 
 	zap.L().Info("Shutting down")
 	<-ctx.Done()
+
+	if config.Depot.SaveConfigChanges {
+		zap.L().Info("Saving configuration")
+		var f *os.File
+		if f, err = os.OpenFile(configFile, os.O_CREATE|os.O_WRONLY, 0600); err != nil {
+			zap.L().Error("Failed to open config file for saving", zap.String("file", configFile), zap.Error(err))
+			goto End
+		}
+		defer f.Close()
+
+		if err := config.Dump(f); err != nil {
+			zap.L().Error("Failed to write configuration file", zap.String("file", configFile), zap.Error(err))
+		}
+	}
+
+End:
 	zap.L().Info("Bye!")
 }
 

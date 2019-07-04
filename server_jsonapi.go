@@ -20,10 +20,10 @@ func setupJSONRoute(mux *http.ServeMux, repositories map[string]repositoryInfo) 
 		w.WriteHeader(http.StatusOK)
 
 		repos := make([]publicRepositoryInfo, 0, len(repositories))
-		for n := range repositories {
+		for n, info := range repositories {
 			repos = append(repos, publicRepositoryInfo{
 				Name:   n,
-				Public: len(repositories[n].Credentials) == 0,
+				Public: info.IsPublic(),
 			})
 		}
 
