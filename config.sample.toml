@@ -1,33 +1,33 @@
 [depot]
-# Address and port where Depot should listen. Default is *:5000
-listen_address = ":5000"
-# Whether listing repositories should be allowed or not
-repository_listing = true
-# Whether JSON REST API queries are allowed or not
-api_enabled = false
-# Whether to save configuration changes done on runtime on Depot exit or not
-save_config_changes = true
+    # Address and port where Depot should listen. Default is *:5000
+    listen_address = ":5000"
+    # Whether listing repositories should be allowed or not
+    repository_listing = true
+    # Whether JSON REST API queries are allowed or not
+    api_enabled = false
+    # Whether to save configuration changes done on runtime on Depot exit or not
+    save_config_changes = true
 
 # Repositories
 [repositories]
     # Repository /repository/maven-central-mirror
     [repositories.maven-central-mirror]
-    # Path where files are hosted from
-    path = "/srv/maven/repository/central-mirror"
-    # By default, repository is publicly available to
-    # everybody and deployment is not allowed
+        # Path where files are hosted from
+        path = "/srv/maven/repository/central-mirror"
+        # By default, repository is publicly available to
+        # everybody and deployment is not allowed
 
     [repositories.internal]
-    path = "/srv/maven/repository/internal"
-    # Whether deployment should be allowed or not
-    deploy = true
-    # Deployment credentials (read-write)
-    deploy_credentials = [
-        "baz:quux"
-    ]
-    # Read-only access credentials
-    credentials = [
-        "foo:bar"
-    ]
-    # Max artifact size in bytes, default is 32 megabytes
-    max_artifact_size = 33554432 # 32 megabytes
+        path = "/srv/maven/repository/internal"
+        # Whether deployment should be allowed or not
+        deploy = true
+        # Deployment credentials (read-write)
+        deploy_credentials = [
+            "baz:quux"
+        ]
+        # Read-only access credentials
+        credentials = [
+            "foo:bar"
+        ]
+        # Max artifact size in bytes, default is 32 megabytes
+        max_artifact_size = 33554432 # 32 megabytes
