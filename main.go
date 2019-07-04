@@ -61,7 +61,7 @@ func main() {
 	}
 
 	// Boot up the HTTP server
-	server := setupServer(listenAddress, config.Depot.RepositoryListing, config.Repositories)
+	server := setupServer(listenAddress, config.Depot.RepositoryListing, config.Depot.APIEnabled, config.Repositories)
 	go func() {
 		zap.L().Info("Starting HTTP server", zap.String("address", listenAddress))
 		if err := server.ListenAndServe(); err != http.ErrServerClosed {

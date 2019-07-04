@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func setupServer(listenAddress string, allowRepositoryListing bool, repositories map[string]repositoryInfo) *http.Server {
+func setupServer(listenAddress string, allowRepositoryListing bool, apiEnabled bool, repositories map[string]repositoryInfo) *http.Server {
 	mux := http.NewServeMux()
 	var rootHandler http.Handler
 
@@ -50,6 +50,11 @@ func setupServer(listenAddress string, allowRepositoryListing bool, repositories
 		if verbose {
 			zap.L().Info("Mapped route", zap.String("from", repo.Path), zap.String("to", route))
 		}
+	}
+
+	if apiEnabled {
+		zap.L().Info("API endpoint is enabled")
+		setupJSONRoute(mux, repositories)
 	}
 
 	return server

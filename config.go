@@ -14,6 +14,9 @@ type depotConfig struct {
 
 	// Whether listing repositories should be allowed or not
 	RepositoryListing bool `toml:"repository_listing"`
+
+	// Whether JSON REST API queries are allowed or not
+	APIEnabled bool `toml:"api_enabled"`
 }
 
 type repositoryInfo struct {
