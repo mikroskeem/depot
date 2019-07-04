@@ -3,6 +3,10 @@
 listen_address = ":5000"
 # Whether listing repositories should be allowed or not
 repository_listing = true
+# Whether JSON REST API queries are allowed or not
+api_enabled = false
+# Whether to save configuration changes done on runtime on Depot exit or not
+save_config_changes = true
 
 # Repositories
 [repositories]
