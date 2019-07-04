@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func setupJSONRoute(mux *http.ServeMux, repositories map[string]repositoryInfo) {
+func setupJSONRoute(mux *http.ServeMux, config *tomlConfig) {
 	// Repository listing
 	type publicRepositoryInfo struct {
 		// Repository name
@@ -19,8 +19,8 @@ func setupJSONRoute(mux *http.ServeMux, repositories map[string]repositoryInfo) 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 
-		repos := make([]publicRepositoryInfo, 0, len(repositories))
-		for n, info := range repositories {
+		repos := make([]publicRepositoryInfo, 0, len(config.Repositories))
+		for n, info := range config.Repositories {
 			repos = append(repos, publicRepositoryInfo{
 				Name:   n,
 				Public: info.IsPublic(),

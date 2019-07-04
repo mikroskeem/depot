@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func setupServer(listenAddress string, allowRepositoryListing bool, apiEnabled bool, repositories map[string]repositoryInfo) *http.Server {
+func setupServer(config *tomlConfig) *http.Server {
 	mux := http.NewServeMux()
 	var rootHandler http.Handler
 
@@ -25,25 +25,25 @@ func setupServer(listenAddress string, allowRepositoryListing bool, apiEnabled b
 	}
 
 	server := &http.Server{
-		Addr:    listenAddress,
+		Addr:    config.Depot.ListenAddress,
 		Handler: rootHandler,
 	}
 
-	if allowRepositoryListing {
+	if config.Depot.RepositoryListing {
 		zap.L().Info("Repository listing is enabled")
 		mux.HandleFunc("/repository", func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "text/html")
 			w.WriteHeader(http.StatusOK)
 
 			fmt.Fprint(w, `<pre>`)
-			for repo := range repositories {
+			for repo := range config.Repositories {
 				fmt.Fprintf(w, "<a href=\"/repository/%s/\">%s/</a>\n", repo, repo)
 			}
 			fmt.Fprint(w, `</pre>`)
 		})
 	}
 
-	for name, repo := range repositories {
+	for name, repo := range config.Repositories {
 		handler, route := repositoryHandler(name, repo)
 		mux.Handle(route, handler)
 
@@ -52,9 +52,9 @@ func setupServer(listenAddress string, allowRepositoryListing bool, apiEnabled b
 		}
 	}
 
-	if apiEnabled {
+	if config.Depot.APIEnabled {
 		zap.L().Info("API endpoint is enabled")
-		setupJSONRoute(mux, repositories)
+		setupJSONRoute(mux, config)
 	}
 
 	return server
