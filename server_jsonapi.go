@@ -17,14 +17,19 @@ func setupJSONRoute(mux *http.ServeMux, config *tomlConfig) {
 
 	mux.HandleFunc("/api/v1/list", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
 
-		repos := make([]publicRepositoryInfo, 0, len(config.Repositories))
-		for n, info := range config.Repositories {
-			repos = append(repos, publicRepositoryInfo{
-				Name:   n,
-				Public: info.IsPublic(),
-			})
+		var repos []publicRepositoryInfo
+		if config.Depot.RepositoryListing {
+			w.WriteHeader(http.StatusOK)
+			repos = make([]publicRepositoryInfo, 0, len(config.Repositories))
+			for n, info := range config.Repositories {
+				repos = append(repos, publicRepositoryInfo{
+					Name:   n,
+					Public: info.IsPublic(),
+				})
+			}
+		} else {
+			w.WriteHeader(http.StatusForbidden)
 		}
 
 		json.NewEncoder(w).Encode(repos)
