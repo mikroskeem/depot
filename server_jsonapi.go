@@ -16,6 +16,7 @@ func setupJSONRoute(mux *http.ServeMux, config *tomlConfig) {
 	}
 
 	mux.HandleFunc("/api/v1/list", func(w http.ResponseWriter, r *http.Request) {
+		setupNoCacheHeaders(&w)
 		w.Header().Set("Content-Type", "application/json")
 
 		var repos []publicRepositoryInfo
