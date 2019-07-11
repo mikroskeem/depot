@@ -183,7 +183,7 @@ func checkAuthentication(credentials []string, username string, password string)
 	return false
 }
 
-func setupNoCacheHeaders(response *http.Response) {
+func setupNoCacheHeaders(response http.ResponseWriter) {
 	response.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
 
 	// HTTP/1.0 - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Pragma
