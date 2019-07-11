@@ -31,6 +31,7 @@ func setupJSONRoute(mux *http.ServeMux, config *tomlConfig) {
 			}
 		} else {
 			w.WriteHeader(http.StatusForbidden)
+			repos = make([]publicRepositoryInfo, 0)
 		}
 
 		json.NewEncoder(w).Encode(repos)
