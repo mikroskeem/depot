@@ -46,6 +46,12 @@ type repositoryInfo struct {
 
 	// MaxArtifactSize defines maximum deployable file size in bytes. By default it's 32 megabytes
 	MaxArtifactSize uint64 `toml:"max_artifact_size"`
+
+	// RemoteRepositoryUrl contains remote repository url what this endpoint shall mirror. Multiple
+	// urls are supported - if single repository fails then another one is tried.
+	// If this is set, then deployments are disabled
+	// Currently only release mirroring is supported
+	RemoteRepositoryURL []string `toml:"remote_url"`
 }
 
 // Validates configuration
@@ -69,6 +75,13 @@ func (t *tomlConfig) Validate() error {
 		if info.DeployCredentials == nil || len(info.DeployCredentials) == 0 {
 			info.DeployCredentials = []string{}
 		}
+
+		// Disable deployments if this is a mirror
+		if info.RemoteRepositoryURL != nil && len(info.RemoteRepositoryURL) > 0 {
+			info.Deploy = false
+		} else {
+			info.RemoteRepositoryURL = []string{}
+		}
 	}
 
 	return nil
@@ -84,4 +97,9 @@ func (t *tomlConfig) Dump(writer io.Writer) error {
 // Returns whether given repository is public or not
 func (i *repositoryInfo) IsPublic() bool {
 	return len(i.Credentials) == 0
+}
+
+// Returns whether given repository is supposed to mirror others
+func (i *repositoryInfo) IsMirror() bool {
+	return len(i.RemoteRepositoryURL) > 0 && !i.Deploy
 }

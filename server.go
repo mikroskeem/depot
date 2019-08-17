@@ -97,7 +97,12 @@ func repositoryHandler(name string, info *repositoryInfo) (http.HandlerFunc, str
 				http.Error(w, "unauthorized", http.StatusUnauthorized)
 				return
 			}
-			fileServer.ServeHTTP(w, r)
+			if info.IsMirror() {
+				// TODO: mirror logic
+				http.Error(w, "not implemented", http.StatusInternalServerError)
+			} else {
+				fileServer.ServeHTTP(w, r)
+			}
 			return
 		}
 
