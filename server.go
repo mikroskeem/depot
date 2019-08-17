@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"go.uber.org/zap"
 )
@@ -25,8 +26,10 @@ func setupServer(config *tomlConfig) *http.Server {
 	}
 
 	server := &http.Server{
-		Addr:    config.Depot.ListenAddress,
-		Handler: rootHandler,
+		Addr:         config.Depot.ListenAddress,
+		Handler:      rootHandler,
+		ReadTimeout:  15 * time.Second,
+		WriteTimeout: 15 * time.Second,
 	}
 
 	if config.Depot.RepositoryListing {
