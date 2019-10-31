@@ -14,7 +14,8 @@ See config.sample.toml, comments should guide you enough
 
 ## Running
 
-Run built binary directly, make sure that config.toml is in its working directory or supplied via `-config` argument
+Run built binary directly, make sure that config.toml is in its working directory or supplied via `-config` argument  
+Or... Docker image is available at [packages section](https://github.com/mikroskeem/depot/packages)
 
 ### Tips
 
