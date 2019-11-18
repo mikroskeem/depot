@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+
+	"go.uber.org/zap"
 )
 
 func setupJSONRoute(mux *http.ServeMux, config *tomlConfig) {
@@ -34,6 +36,8 @@ func setupJSONRoute(mux *http.ServeMux, config *tomlConfig) {
 			repos = make([]publicRepositoryInfo, 0)
 		}
 
-		json.NewEncoder(w).Encode(repos)
+		if err := json.NewEncoder(w).Encode(repos); err != nil {
+			zap.L().Warn("failed to send response", zap.String("url", r.URL.Path), zap.Error(err))
+		}
 	})
 }

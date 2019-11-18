@@ -33,7 +33,7 @@ func main() {
 	signal.Notify(c, os.Interrupt)
 
 	// Setup logging
-	defer zap.L().Sync()
+	defer func() { _ = zap.L().Sync() }()
 	if err := configureLogging(verbose); err != nil {
 		panic(err)
 	}
@@ -73,7 +73,7 @@ func main() {
 	// Shut down
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
-	go server.Shutdown(ctx)
+	go func() { _ = server.Shutdown(ctx) }()
 
 	zap.L().Info("Shutting down")
 	<-ctx.Done()

@@ -161,7 +161,9 @@ func repositoryHandler(name string, info repositoryInfo) (http.HandlerFunc, stri
 			zap.L().Debug("file written on disk", zap.String("filePath", filePath), zap.Int64("bytes", written))
 
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("ok"))
+			if _, err := w.Write([]byte("ok")); err != nil {
+				zap.L().Warn("failed to send response", zap.String("url", r.URL.Path), zap.Error(err))
+			}
 			return
 		}
 
