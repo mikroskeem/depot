@@ -71,12 +71,21 @@ func main() {
 	zap.L().Info("Got interrupt signal")
 
 	// Shut down
+	shutdownDone := make(chan bool, 1)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
-	go func() { _ = server.Shutdown(ctx) }()
+	go func() {
+		_ = server.Shutdown(ctx)
+		shutdownDone <- true
+	}()
 
 	zap.L().Info("Shutting down")
-	<-ctx.Done()
+	select {
+	case <-shutdownDone:
+		zap.L().Debug("Shutdown done")
+	case <-ctx.Done():
+		zap.L().Warn("Shutdown timed out")
+	}
 
 	if config.Depot.SaveConfigChanges {
 		zap.L().Info("Saving configuration")
