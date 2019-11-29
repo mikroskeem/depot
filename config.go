@@ -11,7 +11,7 @@ type tomlConfig struct {
 	Depot depotConfig `toml:"depot"`
 
 	// Repositories is a map of repository names to their info
-	Repositories map[string]repositoryInfo `toml:"repositories"`
+	Repositories map[string]*repositoryInfo `toml:"repositories"`
 }
 
 type depotConfig struct {
@@ -55,37 +55,19 @@ func (t *tomlConfig) Validate() error {
 		t.Depot.ListenAddress = ":5000"
 	}
 
-	ensureCopy := func(m **repositoryInfo, source *repositoryInfo) {
-		if *m == nil {
-			*m = &repositoryInfo{}
-			**m = *source
-		}
-	}
-
 	// Validate repository information
-	for n, info := range t.Repositories {
-		modified := (*repositoryInfo)(nil)
-
-		// Need to copy structs here, maps don't work like I expected :(
+	for _, info := range t.Repositories {
 		if info.MaxArtifactSize == 0 {
-			ensureCopy(&modified, &info)
-			modified.MaxArtifactSize = 32 << 20
+			info.MaxArtifactSize = 32 << 20
 		}
 
 		// Work around toml library not encoding nil arrays
 		if info.Credentials == nil || len(info.Credentials) == 0 {
-			ensureCopy(&modified, &info)
-			modified.Credentials = []string{}
+			info.Credentials = []string{}
 		}
 
 		if info.DeployCredentials == nil || len(info.DeployCredentials) == 0 {
-			ensureCopy(&modified, &info)
-			modified.DeployCredentials = []string{}
-		}
-
-		// If entry is modified, replace
-		if modified != nil {
-			t.Repositories[n] = *modified
+			info.DeployCredentials = []string{}
 		}
 	}
 

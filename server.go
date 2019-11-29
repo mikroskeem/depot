@@ -63,7 +63,7 @@ func setupServer(config *tomlConfig) *http.Server {
 	return server
 }
 
-func repositoryHandler(name string, info repositoryInfo) (http.HandlerFunc, string) {
+func repositoryHandler(name string, info *repositoryInfo) (http.HandlerFunc, string) {
 	repoRoute := fmt.Sprintf("/repository/%s/", name)
 	fileServer := http.StripPrefix(repoRoute, http.FileServer(http.Dir(info.Path)))
 
