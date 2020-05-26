@@ -1,20 +1,13 @@
-FROM golang:1.12.6-alpine3.10
-
-# Install required dependencies
-RUN    apk update \
-    && apk add git binutils
+FROM golang:1.14.3-alpine3.11
 
 # Build depot
-USER nobody
-WORKDIR /tmp
-RUN git clone --depth=1 https://github.com/mikroskeem/depot.git depot \
-    && cd depot \
-    && env GOCACHE=/tmp/.cache CGO_ENABLED=0 GOOS=linux go build \
-    && strip --strip-unneeded depot
+WORKDIR $GOPATH/src/github.com/mikroskeem/depot
+COPY . ./
+RUN env CGO_ENABLED=0 GOOS=linux go build -a -installsuffix nocgo -ldflags="-s -w" -o /depot
 
 # Create depot image
 FROM scratch
-COPY --from=0 /tmp/depot/depot /depot
+COPY --from=0 /depot /depot
 
 USER 99:99
 VOLUME /data
