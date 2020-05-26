@@ -39,7 +39,6 @@ func main() {
 	}
 
 	zap.L().Info("Depot", zap.String("version", Version))
-	zap.L().Info("Work in progress, it's far from being done :(")
 
 	// Read configuration
 	var rawConfig []byte
